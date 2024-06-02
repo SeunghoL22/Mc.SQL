@@ -260,7 +260,7 @@ CREATE TABLE OrderRatings (
 
 
 --고객센터 테이블 생성
-CREATE TABLE customer_support_tickets (
+CREATE TABLE CustomerSupportTickets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT NOT NULL,
     subject VARCHAR(255) NOT NULL, --문의 제목
@@ -274,7 +274,7 @@ CREATE TABLE customer_support_tickets (
 );
 
 --실시간 채팅상담 테이블
-CREATE TABLE live_chat_sessions (
+CREATE TABLE LiveChatSessions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL, --고객 아이디
     agent_id INT NOT NULL, --상담원 아이디
@@ -287,7 +287,7 @@ CREATE TABLE live_chat_sessions (
     FOREIGN KEY (agent_id) REFERENCES Users(UserID) 
 );
 
-CREATE TABLE live_chat_messages (
+CREATE TABLE LiveChatMessages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     session_id INT NOT NULL, --채팅 세션 아이디
     sender_id INT NOT NULL, --보내는사람 id
@@ -295,13 +295,13 @@ CREATE TABLE live_chat_messages (
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     VendorID INT, -- 업체 아이디
     FOREIGN KEY (VendorID) REFERENCES Vendors(VendorID),
-    FOREIGN KEY (session_id) REFERENCES live_chat_sessions(id),
+    FOREIGN KEY (session_id) REFERENCES LiveChatSessions(id),
     FOREIGN KEY (sender_id) REFERENCES Users(UserID)
 );
 
 
 -- 챗봇 대화 테이블
-CREATE TABLE chatbot_conversations (
+CREATE TABLE ChatbotConversations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT NOT NULL,
     session_id VARCHAR(255) NOT NULL,
@@ -313,7 +313,7 @@ CREATE TABLE chatbot_conversations (
 );
 
 -- 챗봇 메시지 테이블
-CREATE TABLE chatbot_messages (
+CREATE TABLE ChatbotMessages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     conversation_id INT NOT NULL,
     sender VARCHAR(50) NOT NULL,
@@ -322,7 +322,7 @@ CREATE TABLE chatbot_messages (
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     VendorID INT, -- 업체 아이디
     FOREIGN KEY (VendorID) REFERENCES Vendors(VendorID),
-    FOREIGN KEY (conversation_id) REFERENCES chatbot_conversations(id)
+    FOREIGN KEY (conversation_id) REFERENCES ChatbotConversations(id)
 );
 
 
