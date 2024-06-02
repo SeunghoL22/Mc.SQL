@@ -62,6 +62,7 @@ CREATE TABLE Orders (
     OrderID INT PRIMARY KEY AUTO_INCREMENT,
     BranchID INT, -- 지점 아이디
     UserID INT,
+    SafePhoneNumber VARCHAR(20), -- "안심번호"
     OrderDate DATETIME,
     DeliveryAddressID INT,
     PaymentInfoID INT,
@@ -480,4 +481,14 @@ CREATE TABLE StrategyAcceptances (
     AcceptanceDate DATETIME NOT NULL, -- 수용 또는 거부 날짜
     Comments TEXT, -- 의견 또는 설명
     FOREIGN KEY (AnalysisResultID) REFERENCES AnalysisResults(AnalysisResultID)
+);
+
+--인기메뉴
+CREATE TABLE CompanyPopularMenuItems (
+    PopularMenuItemID INT PRIMARY KEY AUTO_INCREMENT,
+    MenuItemID INT, -- 메뉴 아이템 ID
+    CorporationID INT, -- 기업 ID
+    SalesCount INT DEFAULT 0, -- 판매량
+    FOREIGN KEY (MenuItemID) REFERENCES MenuItems(MenuItemID),
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID)
 );
