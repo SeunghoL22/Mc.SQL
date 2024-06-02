@@ -280,19 +280,21 @@ CREATE TABLE CartItems (
     FOREIGN KEY (MenuItemID) REFERENCES MenuItems(MenuItemID)
 );
 
--- OrderRatings 테이블 생성 (별점 시스템)
+-- OrderRatings 테이블 생성 (별점 시스템에 코멘트 추가)
 CREATE TABLE OrderRatings (
     OrderRatingID INT PRIMARY KEY AUTO_INCREMENT,
     OrderID INT,
-    DeliveryPersonID INT, -- 배달원 아이디 추가 
+    DeliveryPersonID INT, -- 배달원 아이디 추가
     Rating INT CHECK (Rating >= 1 AND Rating <= 5), -- 1에서 5 사이의 정수 값
     DeliveryPersonRating INT CHECK (DeliveryPersonRating >= 1 AND DeliveryPersonRating <= 5), -- 배달원에 대한 별점
+    Comment TEXT, -- 사용자 코멘트
     RatingDate DATETIME DEFAULT CURRENT_TIMESTAMP, -- 평가가 기록된 날짜와 시간
     BranchID INT, -- 지점 아이디
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID),
     FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
     FOREIGN KEY (DeliveryPersonID) REFERENCES DeliveryPersons(DeliveryPersonID)
 );
+
 
 
 
@@ -348,7 +350,7 @@ CREATE TABLE ChatbotConversations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT NOT NULL,
     session_id VARCHAR(255) NOT NULL,
-    bot_type ENUM('consumer', 'branch_manager', 'headquarters_admin') NOT NULL, -- '본사 관리자용' 챗봇 유형 추가
+    bot_type ENUM('customer', 'branch_manager', 'headquarters') NOT NULL, -- '본사 관리자용' 챗봇 유형 추가
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CorporationID INT, -- 'CorporationID'로 변경
@@ -361,7 +363,7 @@ CREATE TABLE ChatbotMessages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     conversation_id INT NOT NULL,
     sender VARCHAR(50) NOT NULL,
-    sender_type ENUM('customer', 'admin', 'bot', 'branch_manager', 'headquarters_admin') NOT NULL, -- 발신자 유형에 추가 옵션 포함
+    sender_type ENUM('customer', 'admin', 'bot', 'branch_manager', 'headquarters') NOT NULL, -- 발신자 유형에 추가 옵션 포함
     message TEXT NOT NULL,
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CorporationID INT, -- 'CorporationID'로 변경
@@ -457,15 +459,18 @@ CREATE TABLE InventoryAdjustments (
 -- AI 분석 결과 테이블
 CREATE TABLE AnalysisResults (
     AnalysisResultID INT PRIMARY KEY AUTO_INCREMENT,
+    UserID INT, -- 사용자 ID
     CorporationID INT, -- 본사 ID
     BranchID INT, -- 지점 ID, 본사 전체에 대한 분석인 경우 NULL
     AnalysisType VARCHAR(255) NOT NULL, -- 분석 유형
     AnalysisDate DATETIME NOT NULL, -- 분석 날짜 및 시간
     ResultData TEXT NOT NULL, -- 분석 결과 데이터
     AdditionalInfo TEXT, -- 추가 정보 또는 추천 사항
+    FOREIGN KEY (UserID) REFERENCES Users(UserID),
     FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
+
 
 -- 전략 수용 여부 테이블
 CREATE TABLE StrategyAcceptances (
