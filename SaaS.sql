@@ -41,8 +41,31 @@ CREATE TABLE Users (
     Email VARCHAR(255) UNIQUE NOT NULL,
     Password VARCHAR(255) NOT NULL,
     AccountType ENUM('HeadOffice', 'Branch', 'Admin', 'Consumer') NOT NULL, -- 계정 유형
+    MembershipLevel ENUM('Bronze', 'Silver', 'Gold', 'Platinum') NOT NULL DEFAULT 'Bronze', -- 멤버십 등급
+    LastVisitDate DATE, -- 최근 방문일
+    TotalVisits INT DEFAULT 0, -- 총 방문 횟수
+    LastPurchaseDate DATE, -- 최근 구매일
+    TotalPurchases INT DEFAULT 0, -- 총 구매 횟수
+    TotalPurchaseAmount DECIMAL(10, 2) DEFAULT 0.00, -- 총 구매 금액
     FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
+);
+
+CREATE TABLE Admins (
+    AdminID INT PRIMARY KEY AUTO_INCREMENT,
+    UserID INT NOT NULL, -- Users 테이블과 연결
+    AccountStatus ENUM('Active', 'Inactive') NOT NULL DEFAULT 'Active', -- 계정 상태
+    LastPasswordChangeDate DATE, -- 마지막 비밀번호 변경일
+    FOREIGN KEY (UserID) REFERENCES Users(UserID)
+);
+
+CREATE TABLE AdminModificationLogs (
+    LogID INT PRIMARY KEY AUTO_INCREMENT,
+    AdminID INT NOT NULL, -- Admins 테이블과 연결
+    ModificationDateTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 수정 일시
+    ModificationType VARCHAR(255) NOT NULL, -- 수정 유형 (예: "Password Change", "Status Update")
+    ModificationDetails TEXT, -- 수정 상세 내용
+    FOREIGN KEY (AdminID) REFERENCES Admins(AdminID)
 );
 
 
@@ -354,7 +377,9 @@ CREATE TABLE ChatbotConversations (
     bot_type ENUM('customer', 'branch_manager', 'headquarters') NOT NULL, -- '본사 관리자용' 챗봇 유형 추가
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CorporationID INT, -- 'CorporationID'로 변경
+    CorporationID INT NOT NULL, -- 'CorporationID'로 변경
+    BranchID INT,
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID),
     FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
