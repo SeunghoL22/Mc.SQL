@@ -4,7 +4,14 @@ CREATE TABLE Corporations (
     Name VARCHAR(255) NOT NULL,
     Address VARCHAR(255),
     ContactNumber VARCHAR(255),
-    Email VARCHAR(255) UNIQUE
+    Email VARCHAR(255) UNIQUE,
+    BusinessRegistrationNumber VARCHAR(255) NOT NULL,
+    CEOName VARCHAR(255) NOT NULL,
+    ContactPersonName VARCHAR(255) NOT NULL,
+    ContactPersonPhone VARCHAR(255) NOT NULL,
+    ContactPersonTitle VARCHAR(255) NOT NULL,
+    ContactPersonEmail VARCHAR(255) UNIQUE NOT NULL,
+    CorporateLogoURL VARCHAR(255)
 );
 
 -- 지점 정보 테이블
