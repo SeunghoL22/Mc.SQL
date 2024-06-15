@@ -101,6 +101,7 @@ CREATE TABLE Orders (
     NonContactDelivery BOOLEAN,
     CouponID INT DEFAULT NULL,
     PaymentStatus ENUM('pending', 'completed', 'canceled') DEFAULT 'pending',
+    EstimatedDeliveryTime INT, -- 배달 예정 시간 (분 단위)
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID), 
     FOREIGN KEY (UserID) REFERENCES Users(UserID),
     FOREIGN KEY (DeliveryAddressID) REFERENCES DeliveryAddresses(DeliveryAddressID),
@@ -405,6 +406,26 @@ CREATE TABLE ChatbotMessages (
     FOREIGN KEY (conversation_id) REFERENCES ChatbotConversations(id)
 );
 
+-- 챗봇 템플릿 카테고리
+CREATE TABLE ChatbotPromptCategories (
+    CategoryID INT PRIMARY KEY AUTO_INCREMENT,
+    CorporationID INT, -- 본사 ID
+    BranchID INT, -- 지점 ID (지점별로 카테고리를 설정할 수 있음, NULL 가능)
+    Name VARCHAR(255) NOT NULL, -- 카테고리 명 (예: 매출 및 재무)
+    Description TEXT, -- 카테고리 설명
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
+);
+
+-- 템플릿 카테고리에 속한 프롬프트 
+CREATE TABLE ChatbotPrompts (
+    PromptID INT PRIMARY KEY AUTO_INCREMENT,
+    CategoryID INT, -- 카테고리 ID
+    Question TEXT NOT NULL, -- 질문 또는 프롬프트 내용 (예: "이번달 매출 예측")
+    ResponseTemplate TEXT, -- 표준 대답 템플릿 (예: "이번달 예상 매출은 X원입니다.")
+    FOREIGN KEY (CategoryID) REFERENCES ChatbotPromptCategories(CategoryID)
+);
+
 
 --재고관리 테이블 시작--
 
@@ -438,10 +459,10 @@ CREATE TABLE PurchaseOrders (
     SupplierID INT, --공급업체 아이디
     OrderDate DATETIME DEFAULT CURRENT_TIMESTAMP,
     Status ENUM('pending', 'confirmed', 'delivered', 'canceled') DEFAULT 'pending',
+    OrderRequestFilePath VARCHAR(255), -- 발주 요청서 파일 경로
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID),
     FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID)
 );
-
 
 --발주 요청한 제품 (무슨 아이템을 발주했는지)
 CREATE TABLE PurchaseOrderItems (
@@ -457,10 +478,11 @@ CREATE TABLE PurchaseOrderItems (
 --납품 진행 상태 정보
 CREATE TABLE Deliveries (
     DeliveryID INT PRIMARY KEY AUTO_INCREMENT,
-    BranchID INT, -- VendorID를 BranchID로 변경
+    BranchID INT,
     PurchaseOrderID INT,
     DeliveryDate DATETIME DEFAULT CURRENT_TIMESTAMP,
     DeliveryStatus ENUM('pending', 'received', 'rejected') DEFAULT 'pending',
+    DeliveryConfirmationFilePath VARCHAR(255), -- 납품 확인서 파일 경로
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID),
     FOREIGN KEY (PurchaseOrderID) REFERENCES PurchaseOrders(PurchaseOrderID)
 );
@@ -512,16 +534,68 @@ CREATE TABLE StrategyAcceptances (
     AnalysisResultID INT NOT NULL, -- 분석 결과 ID
     Accepted BOOLEAN NOT NULL, -- 수용 여부
     AcceptanceDate DATETIME NOT NULL, -- 수용 또는 거부 날짜
+    AcceptanceRating INT, -- AI 추천 전략에 대한 평점, 1에서 5 사이
     Comments TEXT, -- 의견 또는 설명
-    FOREIGN KEY (AnalysisResultID) REFERENCES AnalysisResults(AnalysisResultID)
+    FOREIGN KEY (AnalysisResultID) REFERENCES AnalysisResults(AnalysisResultID),
+    CHECK (AcceptanceRating >= 1 AND AcceptanceRating <= 5) -- 별점 값의 유효성 검사
 );
+
 
 --인기메뉴
 CREATE TABLE CompanyPopularMenuItems (
     PopularMenuItemID INT PRIMARY KEY AUTO_INCREMENT,
     MenuItemID INT, -- 메뉴 아이템 ID
     CorporationID INT, -- 기업 ID
+    BranchID INT, -- 지점 ID, NULL 가능 (본사 인기 메뉴일 경우)
     SalesCount INT DEFAULT 0, -- 판매량
     FOREIGN KEY (MenuItemID) REFERENCES MenuItems(MenuItemID),
-    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID)
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID) -- 지점 외래키 추가
+);
+
+
+--매출 요약
+CREATE TABLE SalesSummary (
+    SummaryID INT PRIMARY KEY AUTO_INCREMENT,
+    CorporationID INT,
+    BranchID INT,
+    TotalSales DECIMAL(10, 2),
+    TotalTransactions INT,
+    Month DATE,
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
+);
+
+
+--필요한 재료 예측 저장
+CREATE TABLE IngredientForecast (
+    ForecastID INT PRIMARY KEY AUTO_INCREMENT,
+    BranchID INT,
+    Date DATE,
+    IngredientID INT,
+    PredictedQuantity INT, -- 예측 필요 수량, 정수 형태로 변경
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID),
+    FOREIGN KEY (IngredientID) REFERENCES Ingredients(IngredientID)
+);
+
+--시간대별 평균 주문량 저장
+CREATE TABLE HourlyOrderVolume (
+    VolumeID INT PRIMARY KEY AUTO_INCREMENT,
+    Date DATE NOT NULL,
+    Hour INT NOT NULL, -- 0부터 23까지의 시간을 나타냅니다.
+    AverageOrders DECIMAL(10, 1), -- 해당 시간의 평균 주문량, 소수점 한 자리까지
+    BranchID INT, -- 지점 ID, 선택적 사용
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
+);
+
+--월 매출과 평점 목표치 저장
+CREATE TABLE MonthlyGoals (
+    GoalID INT PRIMARY KEY AUTO_INCREMENT,
+    CorporationID INT, -- 본사 ID
+    BranchID INT, -- 지점 ID, NULL 가능 (본사 전체 목표일 경우)
+    Month DATE NOT NULL, -- YYYY-MM-DD 포맷, 일은 무시
+    SalesTarget DECIMAL(15, 2), -- 매출 목표
+    ReviewRatingTarget DECIMAL(2, 1) CHECK (ReviewRatingTarget <= 5.0), -- 리뷰 평점 목표, 최대 5.0
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
