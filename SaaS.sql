@@ -248,15 +248,16 @@ CREATE TABLE DeliveryPersonLocations (
     FOREIGN KEY (DeliveryPersonID) REFERENCES DeliveryPersons(DeliveryPersonID)
 );
 
-CREATE TABLE DeliveryStatusMonitoring ( --배달 상태 모니터링
+CREATE TABLE DeliveryStatusMonitoring (
     MonitoringID INT PRIMARY KEY AUTO_INCREMENT,
     OrderID INT,
-    DeliveryStatus ENUM('pending', 'out_for_delivery', 'delivered', 'failed') DEFAULT 'pending',
+    DeliveryStatus ENUM('pending', 'assigned', 'out_for_delivery', 'delivered', 'failed') DEFAULT 'pending',
     LastUpdated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     BranchID INT, -- 지점 아이디
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID),
     FOREIGN KEY (OrderID) REFERENCES Orders(OrderID)
 );
+
 
 -- IngredientChanges 테이블 생성
 CREATE TABLE IngredientChanges (
