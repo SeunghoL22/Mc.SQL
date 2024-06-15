@@ -528,6 +528,18 @@ CREATE TABLE AnalysisResults (
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
 
+--특정 재료의 재고량 분석 결과 저장 테이블
+CREATE TABLE StockAnalysis (
+    StockAnalysisID INT PRIMARY KEY AUTO_INCREMENT,
+    AnalysisResultID INT, -- AnalysisResults 테이블과 연결
+    IngredientID INT, -- 재료 ID
+    CurrentStock INT, -- 현재 재고 량
+    AnalysisDate DATE, -- 분석 날짜
+    AnalysisResult TEXT, -- 분석 결과
+    ImprovementSuggestions TEXT, -- 개선 사항
+    FOREIGN KEY (AnalysisResultID) REFERENCES AnalysisResults(AnalysisResultID),
+    FOREIGN KEY (IngredientID) REFERENCES Ingredients(IngredientID)
+);
 
 -- 전략 수용 여부 테이블
 CREATE TABLE StrategyAcceptances (
@@ -631,6 +643,17 @@ CREATE TABLE HourlyOrderVolume (
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
 
+--년도별 총 매출 저장
+CREATE TABLE AnnualSalesSummary (
+    SummaryID INT PRIMARY KEY AUTO_INCREMENT,
+    CorporationID INT,
+    BranchID INT,
+    Year INT,
+    TotalSales DECIMAL(15, 2),
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
+);
+
 --월 매출과 평점 목표치 저장
 CREATE TABLE MonthlyGoals (
     GoalID INT PRIMARY KEY AUTO_INCREMENT,
@@ -643,12 +666,13 @@ CREATE TABLE MonthlyGoals (
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
 
---고객센터 주요 문의 키워드 저장
+-- 고객센터 주요 문의 키워드 저장
 CREATE TABLE CustomerInquiryKeywords (
     InquiryKeywordID INT PRIMARY KEY AUTO_INCREMENT,
-    Date DATE NOT NULL, --집계된 날짜
+    Date DATE NOT NULL, -- 집계된 날짜
     Keywords TEXT NOT NULL,
-    Frequency INT DEFAULT 1, --키워드의 하루 빈도수
+    Frequency INT DEFAULT 1, -- 키워드의 하루 빈도수
+    InquiryType ENUM('Delivery', 'Refund', 'Menu', 'Operations', 'Coupon', 'Event', 'AppUsage') NOT NULL, -- 문의 유형
     CorporationID INT,
     BranchID INT,
     FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
