@@ -595,18 +595,19 @@ CREATE TABLE DeliveryReviewAnalysis (
     ImprovementSuggestions TEXT -- 개선 사항
 );
 
-
---인기메뉴
+--지점이나 본사의 인기있는 메뉴 
 CREATE TABLE CompanyPopularMenuItems (
     PopularMenuItemID INT PRIMARY KEY AUTO_INCREMENT,
     MenuItemID INT, -- 메뉴 아이템 ID
     CorporationID INT, -- 기업 ID
     BranchID INT, -- 지점 ID, NULL 가능 (본사 인기 메뉴일 경우)
     SalesCount INT DEFAULT 0, -- 판매량
+    AIAnalysis TEXT, -- AI가 인기있는 이유를 분석한 내용
     FOREIGN KEY (MenuItemID) REFERENCES MenuItems(MenuItemID),
     FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID) -- 지점 외래키 추가
 );
+
 
 
 --매출 요약
