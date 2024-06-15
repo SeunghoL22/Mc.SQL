@@ -599,3 +599,14 @@ CREATE TABLE MonthlyGoals (
     FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
+
+--알림 확인 테이블
+CREATE TABLE Notifications (
+    NotificationID INT PRIMARY KEY AUTO_INCREMENT,
+    BranchID INT, -- 지점 ID, 지점 관련 알림인 경우 사용
+    Type ENUM('Inventory', 'Delivery', 'Task') NOT NULL, -- 알림 유형
+    Message TEXT NOT NULL, -- 알림 메시지
+    IsRead BOOLEAN DEFAULT FALSE, -- 확인 여부, 기본값은 'FALSE' (미확인)
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 알림 생성 시간
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
+);
