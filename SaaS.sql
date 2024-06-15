@@ -540,6 +540,48 @@ CREATE TABLE StrategyAcceptances (
     CHECK (AcceptanceRating >= 1 AND AcceptanceRating <= 5) -- 별점 값의 유효성 검사
 );
 
+--AI 특정 메뉴 리뷰 분석 데이터
+CREATE TABLE MenuSatisfaction (
+    SatisfactionID INT PRIMARY KEY AUTO_INCREMENT,
+    MenuItemID INT NOT NULL,
+    AverageRating DECIMAL(3, 2), -- 메뉴 아이템에 대한 평균 평점 (1에서 5 사이)
+    Comments TEXT, -- 고객의 짧은 코멘트
+    AIRecommendations TEXT, -- AI가 제안하는 개선사항
+    FOREIGN KEY (MenuItemID) REFERENCES MenuItems(MenuItemID)
+);
+
+--해당 달의 해당 음식 리뷰 총체적 AI 분석 데이터
+CREATE TABLE MonthlyReviewAnalysis (
+    AnalysisID INT PRIMARY KEY AUTO_INCREMENT,
+    MenuItemID INT,
+    Month DATE NOT NULL, -- 분석한 달 (YYYY-MM-DD 형식)
+    MenuTotalRating DECIMAL(3, 2) CHECK (MenuTotalRating >= 1 AND MenuTotalRating <= 5), -- 1에서 5 사이의 메뉴 총평점
+    AnalysisResult TEXT, -- 분석 결과
+    ImprovementSuggestions TEXT, -- 개선 사항
+    FOREIGN KEY (MenuItemID) REFERENCES MenuItems(MenuItemID)
+);
+
+--AI 특정 배달 리뷰 분석 데이터
+CREATE TABLE DeliveryReviewAnalysis (
+    ReviewID INT PRIMARY KEY AUTO_INCREMENT,
+    OrderID INT NOT NULL,
+    DeliveryPersonID INT,
+    DeliveryRating DECIMAL(3, 2) CHECK (DeliveryRating >= 1 AND DeliveryRating <= 5), -- 1에서 5 사이의 평점
+    Comments TEXT, -- 고객의 짧은 코멘트
+    AIRecommendations TEXT, -- AI가 제안하는 개선사항
+    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
+    FOREIGN KEY (DeliveryPersonID) REFERENCES DeliveryPersons(DeliveryPersonID)
+);
+
+--해당 달의 배달 리뷰 총체적 AI 분석 데이터
+CREATE TABLE DeliveryReviewAnalysis (
+    AnalysisID INT PRIMARY KEY AUTO_INCREMENT,
+    Month DATE NOT NULL, -- 분석한 달 (YYYY-MM-DD 형식)
+    DeliveryTotalRating DECIMAL(3, 2) CHECK (DeliveryTotalRating >= 1 AND DeliveryTotalRating <= 5), -- 1에서 5 사이의 배달 총평점
+    AnalysisResult TEXT, -- 분석 결과
+    ImprovementSuggestions TEXT -- 개선 사항
+);
+
 
 --인기메뉴
 CREATE TABLE CompanyPopularMenuItems (
@@ -596,6 +638,18 @@ CREATE TABLE MonthlyGoals (
     Month DATE NOT NULL, -- YYYY-MM-DD 포맷, 일은 무시
     SalesTarget DECIMAL(15, 2), -- 매출 목표
     ReviewRatingTarget DECIMAL(2, 1) CHECK (ReviewRatingTarget <= 5.0), -- 리뷰 평점 목표, 최대 5.0
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
+);
+
+--고객센터 주요 문의 키워드 저장
+CREATE TABLE CustomerInquiryKeywords (
+    InquiryKeywordID INT PRIMARY KEY AUTO_INCREMENT,
+    Date DATE NOT NULL, --집계된 날짜
+    Keywords TEXT NOT NULL,
+    Frequency INT DEFAULT 1, --키워드의 하루 빈도수
+    CorporationID INT,
+    BranchID INT,
     FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
