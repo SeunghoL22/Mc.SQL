@@ -62,6 +62,7 @@ CREATE TABLE Admins (
     AdminID INT PRIMARY KEY AUTO_INCREMENT,
     UserID INT NOT NULL, -- Users 테이블과 연결
     AccountStatus ENUM('Active', 'Inactive') NOT NULL DEFAULT 'Active', -- 계정 상태
+    AdminType ENUM('SuperAdmin', 'SystemAdmin') NOT NULL, -- 관리자 유형
     LastPasswordChangeDate DATE, -- 마지막 비밀번호 변경일
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
