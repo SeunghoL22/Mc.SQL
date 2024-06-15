@@ -450,7 +450,8 @@ CREATE TABLE StockItems (
     Category VARCHAR(255),
     CurrentStock INT DEFAULT 0,
     MinimumStockLevel INT DEFAULT 0,
-    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID),
+    StockStatus ENUM('Critical', 'Normal', 'Good') DEFAULT 'Normal', -- 재고 상황
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
 
 --발주 요청 정보 (발주한 내역)
