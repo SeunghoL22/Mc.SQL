@@ -38,10 +38,11 @@ CREATE TABLE Vendors (
     Address VARCHAR(255)
 );
 
---비회원 접속 세션
+-- 비회원 접속 세션 테이블
 CREATE TABLE GuestSessions (
     SessionID VARCHAR(255) PRIMARY KEY,
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PhoneNumber VARCHAR(20) -- 전화번호
 );
 
 --비회원 장바구니 
@@ -120,7 +121,8 @@ CREATE TABLE FeatureToggle ( -- 본사 기능 ON/OFF 여부
 CREATE TABLE Orders (
     OrderID INT PRIMARY KEY AUTO_INCREMENT,
     BranchID INT, -- 지점 아이디
-    UserID INT,
+    UserID INT, -- 회원 ID (NULL 가능)
+    GuestSessionID VARCHAR(255), -- 비회원 세션 ID (NULL 가능)
     SafePhoneNumber VARCHAR(20), -- "안심번호"
     OrderDate DATETIME,
     DeliveryAddressID INT,
@@ -133,11 +135,13 @@ CREATE TABLE Orders (
     PaymentType ENUM('NICEPAY', 'KAKAOPAY', 'NAVERPAY') NOT NULL, -- 결제 수단
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID), 
     FOREIGN KEY (UserID) REFERENCES Users(UserID),
+    FOREIGN KEY (GuestSessionID) REFERENCES GuestSessions(SessionID),
     FOREIGN KEY (DeliveryAddressID) REFERENCES DeliveryAddresses(DeliveryAddressID),
     FOREIGN KEY (PaymentInfoID) REFERENCES PaymentInformation(PaymentInfoID),
     FOREIGN KEY (DeliveryPersonID) REFERENCES DeliveryPersons(DeliveryPersonID),
     FOREIGN KEY (CouponID) REFERENCES Coupons(CouponID)
 );
+
 
 -- OrderDetails 테이블 생성
 CREATE TABLE OrderDetails (
