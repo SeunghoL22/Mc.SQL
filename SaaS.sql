@@ -230,13 +230,22 @@ CREATE TABLE MenuItems (
 -- Coupons 테이블 생성
 CREATE TABLE Coupons (
     CouponID INT PRIMARY KEY AUTO_INCREMENT,
-    UserID INT,
+    UserID INT, -- 사용자 ID (NULL 가능)
+    CorporationID INT, -- 기업 ID
+    BranchID INT, -- 지점 ID (NULL 가능, NULL인 경우 전 지점 적용)
     Code VARCHAR(255),
+    ValidFrom DATE, -- 유효 시작일
+    ValidUntil DATE, -- 유효 종료일
+    Type ENUM('PercentDiscount', 'AmountDiscount') NOT NULL, -- 할인 유형
     DiscountAmount DECIMAL(10,2), -- 할인 금액
-    CorporationID INT, -- 기업 아이디
-    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID), -- Branches에서 Corporations로 변경
+    DiscountPercent DECIMAL(5,2), -- 할인 퍼센트
+    ApplicableMenuItems TEXT, -- 할인 적용 메뉴 (콤마로 구분된 MenuItemID 리스트)
+    UserCondition ENUM('Bronze', 'Silver', 'Gold', 'Platinum'), -- 사용자 조건 (멤버십 등급)
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID),
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
 );
+
 
 
 -- DeliveryAddresses 테이블 생성
@@ -304,13 +313,24 @@ CREATE TABLE IngredientChanges (
     FOREIGN KEY (IngredientID) REFERENCES Ingredients(IngredientID)
 );
 
--- Ingredients 테이블 생성
+-- Ingredients 테이블
 CREATE TABLE Ingredients (
     IngredientID INT PRIMARY KEY AUTO_INCREMENT,
-    Name VARCHAR(255),
-    StockLevel INT DEFAULT 0, -- 재고 수준을 나타냅니다. 0일 경우 품절.
+    Name VARCHAR(255) NOT NULL,
+    Description TEXT,
+    StockLevel INT DEFAULT 0, -- 재고 수준
     CorporationID INT, -- 회사 아이디
-    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID) -- Vendors를 Corporations로 가정합니다.
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID)
+);
+
+-- MenuIngredients 교차 테이블
+CREATE TABLE MenuIngredients (
+    MenuItemID INT,
+    IngredientID INT,
+    Quantity DECIMAL(10,2) NOT NULL, -- 재료의 양
+    PRIMARY KEY (MenuItemID, IngredientID),
+    FOREIGN KEY (MenuItemID) REFERENCES MenuItems(MenuItemID),
+    FOREIGN KEY (IngredientID) REFERENCES Ingredients(IngredientID)
 );
 
 -- Favorites 테이블 생성 (메뉴 즐겨찾기)
@@ -678,6 +698,21 @@ CREATE TABLE HourlyOrderVolume (
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
 
+--메뉴별 품절 예상 시간
+CREATE TABLE MenuStockForecast (
+    ForecastID INT PRIMARY KEY AUTO_INCREMENT,
+    MenuItemID INT NOT NULL, -- 메뉴 아이템 ID
+    CorporationID INT NOT NULL, -- 본사 ID
+    BranchID INT NOT NULL, -- 지점 ID
+    ForecastTime DATETIME NOT NULL, -- 예측 시간
+    PredictedStockLevel INT NOT NULL, -- 예측된 재고 수준
+    PredictedOutOfStockTime DATETIME NOT NULL, -- 예측된 품절 시간
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 데이터 생성 시간
+    FOREIGN KEY (MenuItemID) REFERENCES MenuItems(MenuItemID),
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
+);
+
 --년도별 총 매출 저장
 CREATE TABLE AnnualSalesSummary (
     SummaryID INT PRIMARY KEY AUTO_INCREMENT,
@@ -701,6 +736,17 @@ CREATE TABLE MonthlyGoals (
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
 
+-- MonthlyGoalsAIAnalysis 테이블 생성
+CREATE TABLE MonthlyGoalsAIAnalysis (
+    MonthlyGoalsAIAnalysisID INT PRIMARY KEY AUTO_INCREMENT,
+    GoalID INT NOT NULL, -- MonthlyGoals 테이블과 연결
+    AnalysisResultID INT NOT NULL, -- AnalysisResults 테이블과 연결
+    AnalysisData TEXT NOT NULL, -- AI 분석 데이터
+    ImprovementSuggestions TEXT, -- 개선 사항
+    FOREIGN KEY (GoalID) REFERENCES MonthlyGoals(GoalID),
+    FOREIGN KEY (AnalysisResultID) REFERENCES AnalysisResults(AnalysisResultID)
+);
+
 -- 고객센터 주요 문의 키워드 저장
 CREATE TABLE CustomerInquiryKeywords (
     InquiryKeywordID INT PRIMARY KEY AUTO_INCREMENT,
@@ -713,6 +759,8 @@ CREATE TABLE CustomerInquiryKeywords (
     FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
+
+--기타 테이블들
 
 --알림 확인 테이블
 CREATE TABLE Notifications (
@@ -733,3 +781,27 @@ CREATE TABLE CorporationThemes (
     MainColor VARCHAR(7) NOT NULL, -- HEX 코드로 색상을 저장 (#FFFFFF 형식)
     FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID)
 );
+
+--이벤트 테이블
+CREATE TABLE Events (
+    EventID INT PRIMARY KEY AUTO_INCREMENT,
+    EventName VARCHAR(255) NOT NULL,
+    StartDate DATETIME NOT NULL,
+    EndDate DATETIME NOT NULL,
+    BannerImageURL VARCHAR(255),
+    Description TEXT,
+    CorporationID INT, -- 본사 ID
+    BranchID INT, -- 지점 ID, NULL 가능 (전 지점 적용일 경우)
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
+);
+
+--팝업 메세지 
+CREATE TABLE PopupMessages (
+    PopupID INT PRIMARY KEY AUTO_INCREMENT,
+    PopupName VARCHAR(255) NOT NULL,
+    PopupContent TEXT NOT NULL,
+    RecipientType ENUM('AllUsers', 'NewUsers', 'Bronze', 'Silver', 'Gold', 'Platinum') NOT NULL
+);
+
+
