@@ -38,6 +38,34 @@ CREATE TABLE Vendors (
     Address VARCHAR(255)
 );
 
+--비회원 접속 세션
+CREATE TABLE GuestSessions (
+    SessionID VARCHAR(255) PRIMARY KEY,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+--비회원 장바구니 
+CREATE TABLE GuestCart (
+    CartID INT PRIMARY KEY AUTO_INCREMENT,
+    SessionID VARCHAR(255) NOT NULL,
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (SessionID) REFERENCES GuestSessions(SessionID)
+);
+
+--비회원 장바구니 아이템
+CREATE TABLE GuestCartItems (
+    CartItemID INT PRIMARY KEY AUTO_INCREMENT,
+    CartID INT NOT NULL,
+    MenuItemID INT NOT NULL,
+    Quantity INT NOT NULL,
+    FOREIGN KEY (CartID) REFERENCES GuestCart(CartID),
+    FOREIGN KEY (MenuItemID) REFERENCES MenuItems(MenuItemID)
+);
+
+
+
+
+
 -- User 정보 테이블
 CREATE TABLE Users (
     UserID INT PRIMARY KEY AUTO_INCREMENT,
@@ -102,12 +130,13 @@ CREATE TABLE Orders (
     CouponID INT DEFAULT NULL,
     PaymentStatus ENUM('pending', 'completed', 'canceled') DEFAULT 'pending',
     EstimatedDeliveryTime INT, -- 배달 예정 시간 (분 단위)
+    PaymentType ENUM('NICEPAY', 'KAKAOPAY', 'NAVERPAY') NOT NULL, -- 결제 수단
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID), 
     FOREIGN KEY (UserID) REFERENCES Users(UserID),
     FOREIGN KEY (DeliveryAddressID) REFERENCES DeliveryAddresses(DeliveryAddressID),
     FOREIGN KEY (PaymentInfoID) REFERENCES PaymentInformation(PaymentInfoID),
     FOREIGN KEY (DeliveryPersonID) REFERENCES DeliveryPersons(DeliveryPersonID),
-    FOREIGN KEY (CouponID) REFERENCES Coupons(CouponID)  
+    FOREIGN KEY (CouponID) REFERENCES Coupons(CouponID)
 );
 
 -- OrderDetails 테이블 생성
@@ -423,7 +452,7 @@ CREATE TABLE ChatbotPrompts (
     PromptID INT PRIMARY KEY AUTO_INCREMENT,
     CategoryID INT, -- 카테고리 ID
     Question TEXT NOT NULL, -- 질문 또는 프롬프트 내용 (예: "이번달 매출 예측")
-    ResponseTemplate TEXT, -- 표준 대답 템플릿 (예: "이번달 예상 매출은 X원입니다.")
+    Response`Template` TEXT, -- 표준 대답 템플릿 (예: "이번달 예상 매출은 X원입니다.")
     FOREIGN KEY (CategoryID) REFERENCES ChatbotPromptCategories(CategoryID)
 );
 
