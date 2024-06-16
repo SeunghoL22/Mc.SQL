@@ -724,3 +724,12 @@ CREATE TABLE Notifications (
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 알림 생성 시간
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
 );
+ 
+--커스텀 테마 옵션
+CREATE TABLE CorporationThemes (
+    ThemeID INT PRIMARY KEY AUTO_INCREMENT,
+    CorporationID INT NOT NULL,
+    Theme ENUM('1', '2', '3', '4') NOT NULL, -- 4개의 테마중에 하나를 고름
+    MainColor VARCHAR(7) NOT NULL, -- HEX 코드로 색상을 저장 (#FFFFFF 형식)
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID)
+);
