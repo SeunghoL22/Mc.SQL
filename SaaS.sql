@@ -808,4 +808,15 @@ CREATE TABLE PopupMessages (
     RecipientType ENUM('AllUsers', 'NewUsers', 'Bronze', 'Silver', 'Gold', 'Platinum') NOT NULL
 );
 
-
+--공지사항
+CREATE TABLE Notices (
+    NoticeID INT PRIMARY KEY AUTO_INCREMENT, --공지사항 아이디
+    CorporationID INT NOT NULL,
+    BranchID INT,
+    Title VARCHAR(255) NOT NULL, --제목
+    Content TEXT NOT NULL, --내용
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, --작성 일시
+    UpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, --업데이트 일시
+    FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
+    FOREIGN KEY (BranchID) REFERENCES Branches(BranchID)
+);
