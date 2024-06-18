@@ -24,9 +24,9 @@ CREATE TABLE Branches (
     Email VARCHAR(255) UNIQUE,
     Latitude DECIMAL(10, 8), -- 위도 정보
     Longitude DECIMAL(11, 8), -- 경도 정보
+    OperatingStatus ENUM('Operating', 'Closed') DEFAULT 'Operating', -- 영업 상태
     FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID)
 );
-
 
 
 --업체 정보 테이블(납품 업체 등)
@@ -403,6 +403,18 @@ CREATE TABLE CustomerSupportTickets (
     FOREIGN KEY (BranchID) REFERENCES Branches(BranchID),
     FOREIGN KEY (CorporationID) REFERENCES Corporations(CorporationID),
     FOREIGN KEY (UserID) REFERENCES Users(UserID)
+);
+
+--고객센터 답변 응대
+CREATE TABLE CustomerSupportResponses (
+    ResponseID INT PRIMARY KEY AUTO_INCREMENT, --응대 아이디
+    TicketID INT NOT NULL, --문의 아이디
+    AgentID INT NOT NULL, --응대 사원 아이디
+    Response TEXT NOT NULL, -- 답변 내용
+    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, --생성 시간
+    UpdatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, --수정시간
+    FOREIGN KEY (TicketID) REFERENCES CustomerSupportTickets(id),
+    FOREIGN KEY (AgentID) REFERENCES Users(UserID)
 );
 
 --실시간 채팅상담 테이블
